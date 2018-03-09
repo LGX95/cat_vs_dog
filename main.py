@@ -34,6 +34,10 @@ parser.add_argument('--lr', '--learning-rate', default=1e-4, type=float,
                     metavar='LR', help='initial learning rate')
 parser.add_argument('--weight-decay', default=1e-4, type=float, metavar='M',
                     help='weight decay')
+parser.add_argument('--start-epoch', default=0, type=int, metavar='N',
+                    help='manual epoch number (useful on restarts)')
+parser.add_argument('--resume', default='', type=str, metavar='PATH',
+                    help='path to latest checkpoint')
 
 best_prec1 = 0
 
@@ -65,7 +69,16 @@ def main():
     if args.cuda:
         model, criterion = model.cuda(), criterion.cuda()
 
-    for epoch in range(args.epochs):
+    if args.resume:
+        if os.path.isfile(args.resume):
+            print("=> loading checkpoint '{}'".format(args.resume))
+            checkpoint = torch.load(args.resume)
+            args.start_epoch = checkpoint['epoch']
+            best_prec1 = checkpoint['best_prec1']
+            model.load_state_dict(checkpoint['state_dict'])
+            optimizer.load_state_dict(checkpoint['optimizer'])
+
+    for epoch in range(args.start_epoch, args.epochs):
         train(train_loader, model, criterion, optimizer, epoch)
         prec1 = validate(val_loader, model, criterion)
 
@@ -76,6 +89,7 @@ def main():
             'epoch': epoch + 1,
             'state_dict': model.state_dict(),
             'best_prec1': best_prec1,
+            'optimizer': optimizer.state_dict(),
         }, is_best)
 
 
