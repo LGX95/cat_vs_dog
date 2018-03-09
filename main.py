@@ -51,7 +51,7 @@ def main():
 
     # 如果GPU可用
     if args.cuda:
-        model, criterion = model.cuda(), criterion()
+        model, criterion = model.cuda(), criterion.cuda()
 
     for epoch in range(args.epochs):
         train(train_loader, model, criterion, optimizer, epoch)
@@ -121,6 +121,7 @@ def train(train_loader, model, criterion, optimizer, epoch):
 
     for i, (image, target) in enumerate(train_loader):
         if args.cuda:
+            image = image.cuda()
             target = target.cuda(async=True)
         image_var, target_var = Variable(image), Variable(target)
 
@@ -163,6 +164,7 @@ def validate(val_loader, model, criterion):
 
     for i, (image, target) in enumerate(val_loader):
         if args.cuda:
+            image = image.cuda()
             target = target.cuda(async=True)
         image_var = Variable(image, volatile=True)
         target_var = Variable(target, volatile=True)
