@@ -25,6 +25,10 @@ from utils import AverageMeter, accuracy
 parser = argparse.ArgumentParser(description='Cat vs Dog Classifier')
 parser.add_argument('--epochs', default=100, type=int, metavar='N',
                     help='number of total epochs to run')
+parser.add_argument('-b', '--batch-size', default=128, type=int, metavar='N',
+                    help='mini-batch size (default: 128)')
+parser.add_argument('--workers', default=4, type=int, metavar='N',
+                    help='number of data loading workers (default: 4)')
 
 
 def main():
@@ -94,10 +98,12 @@ def load_data(data_dir):
 
     # 加载 DataLoader
     train_loader = Data.DataLoader(
-        train_dataset, batch_size=32, shuffle=True
+        train_dataset, batch_size=args.batch_size, shuffle=True,
+        num_workers=args.workers, pin_memory=args.cuda
     )
     val_loader = Data.DataLoader(
-        val_dataset, batch_size=32, shuffle=False
+        val_dataset, batch_size=args.batch_size, shuffle=False,
+        num_workers=args.workers, pin_memory=args.cuda
     )
 
     return train_loader, val_loader
