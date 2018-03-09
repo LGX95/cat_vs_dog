@@ -47,7 +47,7 @@ def main():
     # 定义优化器
     optimizer = optim.Adam(model.fc.parameters(), 1e-3)
 
-    for epoch in range(1):
+    for epoch in range(args.epochs):
         train(train_loader, model, criterion, optimizer, epoch)
         prec1 = validate(val_loader, model, criterion)
 
