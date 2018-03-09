@@ -38,6 +38,8 @@ parser.add_argument('--start-epoch', default=0, type=int, metavar='N',
                     help='manual epoch number (useful on restarts)')
 parser.add_argument('--resume', default='', type=str, metavar='PATH',
                     help='path to latest checkpoint')
+parser.add_argument('--evaluate', dest='evaluate', action='store_true',
+                    help='evaluate model on validation set')
 
 best_prec1 = 0
 
@@ -82,6 +84,11 @@ def main():
                 args.resume, checkpoint['epoch']))
         else:
             print("=> no checkpoint found at '{}'".format(args.resume))
+
+    # 在验证数据集上评估模型
+    if args.evaluate:
+        validate(val_loader, model, criterion)
+        return
 
     for epoch in range(args.start_epoch, args.epochs):
         train(train_loader, model, criterion, optimizer, epoch)
