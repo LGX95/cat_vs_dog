@@ -9,6 +9,7 @@ __author__ = 'LGX95'
 
 import argparse
 import os
+import shutil
 
 import torch
 import torch.nn as nn
@@ -34,9 +35,11 @@ parser.add_argument('--lr', '--learning-rate', default=1e-4, type=float,
 parser.add_argument('--weight-decay', default=1e-4, type=float, metavar='M',
                     help='weight decay')
 
+best_prec1 = 0
+
 
 def main():
-    global args
+    global args, best_prec1
     args = parser.parse_args()
     args.cuda = torch.cuda.is_available()
 
@@ -65,6 +68,15 @@ def main():
     for epoch in range(args.epochs):
         train(train_loader, model, criterion, optimizer, epoch)
         prec1 = validate(val_loader, model, criterion)
+
+        # 记录最好的准确率和保存检查点
+        is_best = prec1 > best_prec1
+        best_prec1 = max(prec1, best_prec1)
+        save_checkpoint({
+            'epoch': epoch + 1,
+            'state_dict': model.state_dict(),
+            'best_prec1': best_prec1,
+        }, is_best)
 
 
 def load_data(data_dir):
@@ -195,6 +207,19 @@ def validate(val_loader, model, criterion):
                   i, len(val_loader), loss=losses, top1=top1))
 
     return top1.avg
+
+
+def save_checkpoint(state, is_best, filename='checkpoint.pth.tar'):
+    """保存检查点
+
+    Args:
+        state: 要保存的对象
+        is_best: 是否在验证集准确率最高
+        filename: 保存的文件名
+    """
+    torch.save(state, filename)
+    if is_best:
+        shutil.copyfile(filename, 'model_best.pth.tar')
 
 
 if __name__ == '__main__':
