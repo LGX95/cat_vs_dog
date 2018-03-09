@@ -18,6 +18,7 @@ import torch.utils.data as Data
 import torchvision.datasets as datasets
 import torchvision.models as models
 import torchvision.transforms as transforms
+from PIL import Image
 from torch.autograd import Variable
 
 from utils import AverageMeter, accuracy
@@ -246,6 +247,34 @@ def save_checkpoint(state, is_best, filename='checkpoint.pth.tar'):
     torch.save(state, filename)
     if is_best:
         shutil.copyfile(filename, 'model_best.pth.tar')
+
+
+class TestImageFolder(Data.Dataset):
+    """加载测试图片
+
+    Args:
+        root (string): Root directory path
+        transform (callable, optional): A function/transform that takes in
+            an PIL image and return a transformed version.
+            E.g, ``transforms.RandomCrop``
+    """
+    def __init__(self, root, transform=None):
+        imgs = [filename for filename in os.listdir(root)
+                if filename.endswith('jpg')]
+
+        self.root = root
+        self.imgs = imgs
+        self.transform = transform
+
+    def __getitem__(self, index):
+        filename = self.imgs[index]
+        img = Image.open(os.path.join(self.root, filename))
+        if self.transform is not None:
+            img = self.transform(img)
+        return img, filename
+
+    def __len__(self):
+        return len(self.imgs)
 
 
 if __name__ == '__main__':
