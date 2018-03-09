@@ -270,6 +270,8 @@ def test(test_loader, model):
         filename = os.path.splitext(filename[0])[0]
         id_ = int(filename)
 
+        if args.cuda:
+            image = image.cuda()
         image_var = Variable(image, volatile=True)
         output = model(image_var)
         # 对 output 进行 softmax 运算
