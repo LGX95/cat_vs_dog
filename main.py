@@ -7,6 +7,7 @@ Pytorch 迁移学习分类猫和狗
 
 __author__ = 'LGX95'
 
+import argparse
 import os
 
 import torch.nn as nn
@@ -20,7 +21,16 @@ from torch.autograd import Variable
 from utils import AverageMeter, accuracy
 
 
+parser = argparse.ArgumentParser(description='Cat vs Dog Classifier')
+parser.add_argument('--epochs', default=100, type=int, metavar='N',
+                    help='number of total epochs to run')
+
+
 def main():
+    global args
+    args = parser.parse_args()
+
+    # 加载数据
     train_loader, val_loader = load_data('./datasets/cat_vs_dog/')
 
     print("=> creating model ")
