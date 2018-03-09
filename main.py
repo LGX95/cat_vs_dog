@@ -8,6 +8,7 @@ Pytorch 迁移学习分类猫和狗
 __author__ = 'LGX95'
 
 import argparse
+import csv
 import os
 import shutil
 
@@ -41,6 +42,8 @@ parser.add_argument('--resume', default='', type=str, metavar='PATH',
                     help='path to latest checkpoint')
 parser.add_argument('--evaluate', dest='evaluate', action='store_true',
                     help='evaluate model on validation set')
+parser.add_argument('--test', dest='test', action='store_true',
+                    help='evaluate model on test set')
 
 best_prec1 = 0
 
@@ -85,6 +88,21 @@ def main():
                 args.resume, checkpoint['epoch']))
         else:
             print("=> no checkpoint found at '{}'".format(args.resume))
+
+    # 评估模型在测试数据集的结果
+    if args.test:
+        transform = transforms.Compose([
+            transforms.Resize(256),
+            transforms.CenterCrop(224),
+            transforms.ToTensor(),
+            transforms.Normalize(mean=[0.485, 0.456, 0.406],
+                                 std=[0.229, 0.224, 0.225])
+        ])
+        test_dataset = TestImageFolder('./datasets/cat_vs_dog/test', transform)
+        test_loader = Data.DataLoader(test_dataset)
+        print('Testing the model and generating a output csv for submission')
+        test(test_loader, model)
+        return
 
     # 在验证数据集上评估模型
     if args.evaluate:
@@ -234,6 +252,36 @@ def validate(val_loader, model, criterion):
                   i, len(val_loader), loss=losses, top1=top1))
 
     return top1.avg
+
+
+def test(test_loader, model):
+    """测试测试图片
+
+    Args:
+        test_loader: 测试图片的 DataLoader
+        model: CNN 模型
+    """
+    # switch model to evaluate mode
+    model.eval()
+
+    csv_map = {}
+    for image, filename in test_loader:
+        # 去除图片文件名的拓展名，将文件名作为csv中的id
+        filename = os.path.splitext(filename[0])[0]
+        id_ = int(filename)
+
+        image_var = Variable(image, volatile=True)
+        output = model(image_var)
+        # 对 output 进行 softmax 运算
+        smax_out = nn.functional.softmax(output, dim=1)[0]
+        dog_prob = smax_out.data[1]
+        csv_map[id_] = dog_prob
+
+    with open('entry.csv', 'w') as f:
+        f_csv = csv.writer(f)
+        f_csv.writerow(('id', 'label'))
+        for row in sorted(csv_map.items()):
+            f_csv.writerow(row)
 
 
 def save_checkpoint(state, is_best, filename='checkpoint.pth.tar'):
