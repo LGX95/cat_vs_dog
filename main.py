@@ -29,6 +29,10 @@ parser.add_argument('-b', '--batch-size', default=128, type=int, metavar='N',
                     help='mini-batch size (default: 128)')
 parser.add_argument('--workers', default=4, type=int, metavar='N',
                     help='number of data loading workers (default: 4)')
+parser.add_argument('--lr', '--learning-rate', default=1e-4, type=float,
+                    metavar='LR', help='initial learning rate')
+parser.add_argument('--weight-decay', default=1e-4, type=float, metavar='M',
+                    help='weight decay')
 
 
 def main():
@@ -51,7 +55,8 @@ def main():
     # 定义损失函数
     criterion = nn.CrossEntropyLoss()
     # 定义优化器
-    optimizer = optim.Adam(model.fc.parameters(), 1e-3)
+    optimizer = optim.Adam(model.fc.parameters(), lr=args.lr,
+                           weight_decay=args.weight_decay)
 
     # 如果GPU可用
     if args.cuda:
