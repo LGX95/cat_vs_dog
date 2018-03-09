@@ -21,6 +21,7 @@ import torchvision.models as models
 import torchvision.transforms as transforms
 from PIL import Image
 from torch.autograd import Variable
+from tqdm import tqdm
 
 from utils import AverageMeter, accuracy
 
@@ -265,7 +266,7 @@ def test(test_loader, model):
     model.eval()
 
     csv_map = {}
-    for image, filename in test_loader:
+    for image, filename in tqdm(test_loader):
         # 去除图片文件名的拓展名，将文件名作为csv中的id
         filename = os.path.splitext(filename[0])[0]
         id_ = int(filename)
