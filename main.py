@@ -10,6 +10,7 @@ __author__ = 'LGX95'
 import argparse
 import os
 
+import torch
 import torch.nn as nn
 import torch.optim as optim
 import torch.utils.data as Data
@@ -29,6 +30,7 @@ parser.add_argument('--epochs', default=100, type=int, metavar='N',
 def main():
     global args
     args = parser.parse_args()
+    args.cuda = torch.cuda.is_available()
 
     # 加载数据
     train_loader, val_loader = load_data('./datasets/cat_vs_dog/')
@@ -46,6 +48,10 @@ def main():
     criterion = nn.CrossEntropyLoss()
     # 定义优化器
     optimizer = optim.Adam(model.fc.parameters(), 1e-3)
+
+    # 如果GPU可用
+    if args.cuda:
+        model, criterion = model.cuda(), criterion.cuda()
 
     for epoch in range(1):
         train(train_loader, model, criterion, optimizer, epoch)
@@ -114,7 +120,8 @@ def train(train_loader, model, criterion, optimizer, epoch):
     top1 = AverageMeter()
 
     for i, (image, target) in enumerate(train_loader):
-        # target = target.cuda(async=True)
+        if args.cuda:
+            target = target.cuda(async=True)
         image_var, target_var = Variable(image), Variable(target)
 
         # 前馈运算和计算损失
@@ -155,7 +162,8 @@ def validate(val_loader, model, criterion):
     top1 = AverageMeter()
 
     for i, (image, target) in enumerate(val_loader):
-        # target = target.cuda(async=True)
+        if args.cuda:
+            target = target.cuda(async=True)
         image_var = Variable(image, volatile=True)
         target_var = Variable(target, volatile=True)
 
